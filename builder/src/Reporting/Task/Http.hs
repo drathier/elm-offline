@@ -4,6 +4,7 @@ module Reporting.Task.Http
   ( Fetch
   , Handler
   , run
+  , runEither
   , package
   , anything
   , andThen
@@ -79,6 +80,13 @@ report =
 run :: Fetch a -> Task.Task a
 run fetch =
   Task.runHttp $ \manager tell ->
+    do  chan <- newChan
+        replicateM_ 4 $ forkIO $ forever $ join (readChan chan)
+        readMVar =<< runHelp chan manager tell fetch
+
+runEither :: Fetch a -> Task.Task (Either Exit.Exit a)
+runEither fetch =
+  Task.runHttpEither $ \manager tell ->
     do  chan <- newChan
         replicateM_ 4 $ forkIO $ forever $ join (readChan chan)
         readMVar =<< runHelp chan manager tell fetch

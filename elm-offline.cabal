@@ -1,15 +1,16 @@
 
-Name: elm
+Name: elm-offline
 Version: 0.19.0
 
 Synopsis:
-    The `elm` command line interface.
+    The `elm-offline` command line interface.
 
 Description:
-    This includes commands like `elm make`, `elm repl`, and many others
-    for helping make Elm developers happy and productive.
+    This downloads all published elm packages into the
+    device-level cache on your machine, so you can develop
+    offline.
 
-Homepage: http://elm-lang.org
+Homepage: http://github.com/drathier/elm-offline
 
 License: BSD3
 License-file: LICENSE
@@ -34,7 +35,7 @@ Flag dev {
 }
 
 
-Executable elm
+Executable elm-offline
     if flag(dev)
         ghc-options: -O0 -Wall -Werror
     else
@@ -227,7 +228,7 @@ Executable elm
         Type.Unify
         Type.UnionFind
         Validate
-        Paths_elm
+        Paths_elm_offline
 
     Build-depends:
         ansi-terminal >= 0.8 && < 0.9,

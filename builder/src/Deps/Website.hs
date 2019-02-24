@@ -158,7 +158,7 @@ download packages =
           let start = Progress.DownloadStart packages
           let toEnd = Progress.DownloadEnd
 
-          void $ Http.run $ Http.report start toEnd $
+          void $ Http.runEither $ Http.report start toEnd $
             Http.parallel $ map (downloadHelp cache) packages
 
 

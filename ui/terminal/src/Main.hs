@@ -29,12 +29,47 @@ import qualified Publish
 import qualified Repl
 
 
+-- ELM-OFFLINE CODE
+
+import qualified Deps.Verify
+import qualified Data.Map as Map
+import qualified Deps.Cache
+import qualified Reporting.Task as Task
+import qualified Reporting.Progress.Terminal
+import Deps.Cache (PackageRegistry(..))
+import qualified Debug.Trace
+
+main :: IO ()
+main =
+  downloadAll
+
+downloadAll = do
+  reporter <- Reporting.Progress.Terminal.create
+  Task.run reporter $ do
+    -- update registry, i.e. fetch the list of all packages on package.elm-lang.org
+    (PackageRegistry checkpointId packageVersions) <- Deps.Cache.mandatoryUpdate -- :: Task.Task PackageRegistry
+    -- where PackageRegistry Int (Map Pkg.Name [Pkg.Version])
+    _ <- Debug.Trace.trace ("raw\n" <> show packageVersions) $ pure ()
+    -- expand Map Pkg.Name [Pkg.Version] into Map Pkg.Name Pkg.Version
+    let solution =
+          --filter (\(Pkg.Name author package,_) -> author == "drathier") $
+          concatMap (\(pkgName, versions) -> (\version -> (pkgName, version)) <$> versions) $ Map.toList packageVersions
+
+    _ <- Debug.Trace.trace ("solution\n" <> concat ((\(pkg, vsn) -> show pkg <> ": " <> show vsn <> "\n") <$> solution)) $ pure ()
+
+    -- download source and verify that it builds
+    Deps.Verify.verifyArtifactsList solution -- :: Map Name Version -> Task.Task RawInfo
+
+
+
+-- END ELM-OFFLINE CODE
 
 -- MAIN
 
 
-main :: IO ()
-main =
+
+oldMain :: IO ()
+oldMain =
   do  setLocaleEncoding utf8
       complex intro outro
         [ repl

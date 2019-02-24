@@ -2,7 +2,7 @@
 module Elm.Compiler.Version (version) where
 
 import qualified Data.Version as Version
-import qualified Paths_elm
+import qualified Paths_elm_offline as Paths_elm
 import Elm.Package (Version(Version))
 
 

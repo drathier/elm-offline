@@ -1,5 +1,6 @@
 module Deps.Verify
   ( verify
+  , verifyArtifactsList
   )
   where
 
@@ -13,7 +14,7 @@ import qualified Data.Set as Set
 import qualified Data.Map.Merge.Strict as Map
 import Data.Map (Map)
 import Data.Set (Set)
-import System.Directory (doesDirectoryExist)
+import System.Directory (doesDirectoryExist, doesFileExist)
 import System.FilePath ((</>))
 
 import qualified Elm.Compiler.Module as Module
@@ -44,7 +45,7 @@ import qualified Reporting.Progress as Progress
 import qualified Reporting.Task as Task
 import qualified Stuff.Paths as Paths
 
-
+import Debug.Trace
 
 -- VERIFY
 
@@ -150,11 +151,23 @@ verifyArtifacts solution =
   do  Website.download =<< filterM noSrc (Map.toList solution)
       verifyBuildArtifacts solution
 
+verifyArtifactsList :: [(Name, Version)] -> Task.Task ()
+verifyArtifactsList solution =
+  do  Website.download =<< filterM noSrc solution
+      trace "all packages downloaded" $ pure ()
+      okPkgs <- filterM hasElmJson solution
+      sequence (verifyBuildArtifacts <$> ((\v -> Map.fromList [v]) <$> okPkgs))
+      pure ()
 
 noSrc :: (Name, Version) -> Task.Task Bool
 noSrc (name, version) =
   do  root <- Task.getPackageCacheDirFor name version
       liftIO $ not <$> doesDirectoryExist (root </> "src")
+
+hasElmJson :: (Name, Version) -> Task.Task Bool
+hasElmJson (name, version) =
+  do  root <- Task.getPackageCacheDirFor name version
+      liftIO $ doesFileExist (root </> "elm.json")
 
 
 
