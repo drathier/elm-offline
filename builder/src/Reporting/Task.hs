@@ -15,6 +15,7 @@ module Reporting.Task
   , getSilentRunner
   , workerChan
   , runHttp
+  , runHttpEither
   )
   where
 
@@ -63,7 +64,7 @@ data Env =
 try :: Progress.Reporter -> Task a -> IO (Maybe a)
 try (Progress.Reporter tell ask end) task =
   do  root <- PerUserCache.getPackageRoot
-      pool <- initPool 4
+      pool <- initPool 256
       httpManager <- Http.newManager Http.tlsManagerSettings
       let env = Env root pool httpManager tell ask
       result <- R.runReaderT (runExceptT task) env
@@ -187,3 +188,8 @@ runHttp fetcher =
   do  (Env _ _ manager tell _) <- R.ask
       result <- liftIO $ fetcher manager tell
       either throwError return result
+
+runHttpEither :: (Http.Manager -> (Progress.Progress -> IO ()) -> IO (Either Exit.Exit a)) -> Task (Either Exit.Exit a)
+runHttpEither fetcher =
+  do  (Env _ _ manager tell _) <- R.ask
+      liftIO $ fetcher manager tell

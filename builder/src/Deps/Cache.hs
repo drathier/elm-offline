@@ -3,7 +3,7 @@
 module Deps.Cache
   ( optionalUpdate
   , mandatoryUpdate
-  , PackageRegistry
+  , PackageRegistry(..)
   , getPackageRegistry
   , getVersions
   , getElmJson
